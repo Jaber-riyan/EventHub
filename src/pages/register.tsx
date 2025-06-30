@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,14 +21,16 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import Swal from "sweetalert2";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation()
   const { toast } = useToast();
+  const {user} = useAuth()
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const axiosInstanceNormal = UseAxiosNormal();
@@ -38,6 +40,16 @@ export default function RegisterPage() {
     password: "",
     photoURL: "",
   });
+
+  useEffect(() => {
+    if (user?.name) {
+      Swal.fire({
+        title: "You Already Logged In!",
+        icon: "info",
+      });
+      navigate(location?.state || "/");
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

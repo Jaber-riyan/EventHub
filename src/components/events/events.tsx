@@ -49,6 +49,9 @@ export default function EventsPage() {
   const { eventsData, eventsLoading, eventsRefetch } = UseEvents();
   const axiosInstanceNormal = UseAxiosNormal();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [hideDescriptionMap, setHideDescriptionMap] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -194,10 +197,15 @@ export default function EventsPage() {
     });
   };
 
+  const toggleDescription = (eventId: string) => {
+    setHideDescriptionMap((prev) => ({
+      ...prev,
+      [eventId]: !prev[eventId],
+    }));
+  };
+
   if (eventsLoading) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   if (!user) {
@@ -286,8 +294,19 @@ export default function EventsPage() {
                         <span>{event.attendeeCount} attendees</span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 line-clamp-3">
-                      {event.description}
+                    <p className="text-sm text-gray-700">
+                      <span>
+                        {hideDescriptionMap[event._id]
+                          ? event.description
+                          : `${event.description.slice(0, 30)}...`}
+                      </span>{" "}
+                      <button
+                        onClick={() => toggleDescription(event._id)}
+                        className="text-blue-600 underline ml-1 cursor-pointer">
+                        {hideDescriptionMap[event._id]
+                          ? "Show Less"
+                          : "Show More"}
+                      </button>
                     </p>
                     <Button
                       className="w-full"

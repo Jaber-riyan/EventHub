@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import axios from "axios";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
@@ -32,6 +32,16 @@ export default function LoginPage() {
     password: "",
     lastLoginTime: new Date().toISOString(),
   });
+
+  useEffect(() => {
+    if (user?.name) {
+      Swal.fire({
+        title: "You Already Logged In!",
+        icon: "info",
+      });
+      navigate(location?.state || "/");
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -58,8 +68,7 @@ export default function LoginPage() {
 
         navigate(location?.state || "/");
       }
-    } 
-    catch (error: any) {
+    } catch (error: any) {
       const errorMsg =
         error?.response?.data?.message || "Something went wrong, try again";
       Swal.fire({
@@ -67,8 +76,7 @@ export default function LoginPage() {
         text: errorMsg,
         icon: "error",
       });
-    } 
-    finally {
+    } finally {
       setIsLoading(false);
     }
   };

@@ -66,6 +66,9 @@ export default function MyEventsPage() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { myEventsData, myEventsLoading, myEventsRefetch } = UseMyEvents();
+  const [hideDescriptionMap, setHideDescriptionMap] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   useEffect(() => {
     if (!user) {
@@ -124,7 +127,7 @@ export default function MyEventsPage() {
           title: data.message,
           icon: "success",
         });
-        myEventsRefetch()
+        myEventsRefetch();
       }
 
       setIsUpdateDialogOpen(false);
@@ -190,6 +193,13 @@ export default function MyEventsPage() {
       month: "long",
       day: "numeric",
     });
+
+  const toggleDescription = (eventId: string) => {
+    setHideDescriptionMap((prev) => ({
+      ...prev,
+      [eventId]: !prev[eventId],
+    }));
+  };
 
   if (myEventsLoading || userLoading) {
     return <Loading></Loading>;
@@ -269,8 +279,19 @@ export default function MyEventsPage() {
                           <span>{event.attendeeCount} attendees</span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-3">
-                        {event.description}
+                      <p className="text-sm text-gray-700">
+                        <span>
+                          {hideDescriptionMap[event.id]
+                            ? event.description
+                            : `${event.description.slice(0, 30)}...`}
+                        </span>{" "}
+                        <button
+                          onClick={() => toggleDescription(event.id)}
+                          className="text-blue-600 underline ml-1 cursor-pointer">
+                          {hideDescriptionMap[event.id]
+                            ? "Show Less"
+                            : "Show More"}
+                        </button>
                       </p>
                       <div className="flex gap-2 pt-2">
                         <Button
