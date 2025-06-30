@@ -1,3 +1,7 @@
-export default function Loading() {
-  return null
-}
+import React from 'react';
+
+const Loading = () => {
+    return null;
+};
+
+export default Loading;
