@@ -82,6 +82,7 @@ export default function AddEventPage() {
           description: "",
           attendeeCount: 0,
         });
+        
 
         navigate(location?.state || "/add-event");
       }
