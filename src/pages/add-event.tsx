@@ -14,19 +14,23 @@ import {
 import { Calendar, MapPin, Clock, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
+import Swal from "sweetalert2";
+import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
+import Loading from "@/components/events/loading";
 
 export default function AddEventPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const axiosInstanceNormal = UseAxiosNormal();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: "",
+    eventTitle: "",
     name: "",
-    date: "",
-    time: "",
+    dateAndTime: "",
     location: "",
     description: "",
     attendeeCount: 0,
@@ -56,39 +60,47 @@ export default function AddEventPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log(formData);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data: userInsertInfo } = await axiosInstanceNormal.post(
+        `/events/create-event`,
+        formData
+      );
 
-      toast({
-        title: "Event Created Successfully!",
-        description:
-          "Your event has been added and is now visible to all users.",
-      });
+      console.log(userInsertInfo);
 
-      // Reset form
-      setFormData({
-        title: "",
-        name: user?.name || "",
-        date: "",
-        time: "",
-        location: "",
-        description: "",
-        attendeeCount: 0,
-      });
+      if (userInsertInfo.success) {
+        Swal.fire({
+          title: userInsertInfo.message,
+          icon: "success",
+        });
 
-      // Redirect to events page
-      navigate("/events");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create event. Please try again.",
-        variant: "destructive",
+        setFormData({
+          eventTitle: "",
+          dateAndTime: "",
+          location: "",
+          description: "",
+          attendeeCount: 0,
+        });
+
+        navigate(location?.state || "/add-event");
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.message || "Something went wrong, try again";
+      Swal.fire({
+        title: "Event create Failed",
+        text: errorMsg,
+        icon: "error",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return <Loading></Loading>;
+  }
 
   if (!user) {
     return null; // Will redirect in useEffect
@@ -96,8 +108,6 @@ export default function AddEventPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -128,9 +138,9 @@ export default function AddEventPage() {
                   <div className="space-y-2">
                     <Label htmlFor="title">Event Title *</Label>
                     <Input
-                      id="title"
-                      name="title"
-                      value={formData.title}
+                      id="eventTitle"
+                      name="eventTitle"
+                      value={formData.eventTitle}
                       onChange={handleInputChange}
                       placeholder="Enter event title"
                       required
@@ -145,39 +155,26 @@ export default function AddEventPage() {
                       onChange={handleInputChange}
                       placeholder="Your name"
                       required
+                      readOnly
+                      disabled
                     />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="date" className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Event Date *
-                    </Label>
-                    <Input
-                      id="date"
-                      name="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time" className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Event Time *
-                    </Label>
-                    <Input
-                      id="time"
-                      name="time"
-                      type="time"
-                      value={formData.time}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="dateAndTime"
+                    className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Event Date *
+                  </Label>
+                  <Input
+                    id="dateAndTime"
+                    name="dateAndTime"
+                    type="datetime-local"
+                    value={formData.dateAndTime}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -223,6 +220,8 @@ export default function AddEventPage() {
                     value={formData.attendeeCount}
                     onChange={handleInputChange}
                     placeholder="0"
+                    readOnly
+                    disabled
                   />
                   <p className="text-sm text-gray-500">
                     This will be the starting number of attendees (default: 0)

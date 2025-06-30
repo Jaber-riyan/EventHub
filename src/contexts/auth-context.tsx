@@ -1,27 +1,40 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  photoURL: string;
+  photoURL?: string;
+}
+
+interface UserPayload {
+  name: string;
+  email: string;
+  password: string;
+  _id: string;
+  lastLoginTime: string;
+  createdAt: string;
+  updateAt: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-    photoURL: string
-  ) => Promise<void>;
+  login: (user: UserPayload) => Promise<void>;
+  // register: (
+  //   name: string,
+  //   email: string,
+  //   password: string,
+  //   photoURL: string,
+  //   user: object
+  // ) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -36,13 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (user: UserPayload) => {
     // Simulate API call
     const mockUser = {
-      id: "1",
-      name: "John Doe",
-      email,
-      photoURL: "/placeholder.svg?height=40&width=40",
+      id: user?._id,
+      name: user?.name,
+      email: user.email,
+      photoURL: user?.photoURL,
     };
     setUser(mockUser);
     localStorage.setItem("user", JSON.stringify(mockUser));
@@ -52,17 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email: string,
     password: string,
-    photoURL: string
+    photoURL: string,
+    user?: { _id: string }
   ) => {
     // Simulate API call
     const mockUser = {
-      id: "1",
+      id: user?._id || "2",
       name,
       email,
       photoURL: photoURL || "/placeholder.svg?height=40&width=40",
     };
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
   };
 
   const logout = () => {
@@ -71,9 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
