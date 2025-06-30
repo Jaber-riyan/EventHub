@@ -73,8 +73,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center gap-10">
-          <div className="">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse md:flex-row justify-between items-center gap-10 py-10">
+          {/* Left Text Section */}
+          <div className="w-full md:w-1/2 text-center md:text-left">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -89,7 +90,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              className="text-xl text-gray-600 mb-8 max-w-2xl">
               Create, discover, and join events that matter to you. Connect with
               your community and make lasting memories.
             </motion.p>
@@ -97,7 +98,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4">
+              className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link to="/events">
                 <Button size="lg" className="text-lg px-8 py-3">
                   Explore Events
@@ -114,11 +115,13 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </div>
-          <div className="border-4 border-blue-400 rounded-2xl">
+
+          {/* Right Image Section */}
+          <div className="w-full md:w-1/2 flex justify-center">
             <img
-              className="rounded-xl"
+              className="rounded-2xl w-full max-w-md md:max-w border-4 border-blue-400"
               src="https://demo.ovathemes.com/eventmana/wp-content/uploads/2015/09/event-1a.jpg"
-              alt=""
+              alt="Event"
             />
           </div>
         </div>
