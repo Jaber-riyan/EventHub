@@ -18,6 +18,7 @@ import useAuth from "@/hooks/useAuth";
 import Swal from "sweetalert2";
 import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import axios from "axios";
+import { Helmet } from "react-helmet-async";
 
 export default function LoginPage() {
   const { login, user } = useAuth();
@@ -83,6 +84,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <Helmet>
+        <title>Signin | EventHub</title>
+      </Helmet>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

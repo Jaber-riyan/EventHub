@@ -11,9 +11,12 @@ import { Calendar, Users, MapPin, Clock, Star, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import UseEvents from "@/hooks/useEvents/UseEvents";
+import UseFeaturesEvents from "@/hooks/useFeaturesEvents/UseFeaturesEvents";
+import { Helmet } from "react-helmet-async";
 
 export default function HomePage() {
-  const { eventsData } = UseEvents();
+  const { featuresEventsData, featuresEventsLoading, featuresEventsRefetch } =
+    UseFeaturesEvents();
   const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleString("en-US", {
       weekday: "long",
@@ -48,29 +51,13 @@ export default function HomePage() {
     },
   ];
 
-  const upcomingEvents = [
-    {
-      title: "Tech Conference 2024",
-      date: "Dec 15, 2024",
-      location: "San Francisco, CA",
-      attendees: 250,
-    },
-    {
-      title: "Music Festival",
-      date: "Dec 20, 2024",
-      location: "Los Angeles, CA",
-      attendees: 1500,
-    },
-    {
-      title: "Food & Wine Expo",
-      date: "Dec 25, 2024",
-      location: "New York, NY",
-      attendees: 800,
-    },
-  ];
+  console.log(featuresEventsData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <Helmet>
+        <title>Home | EventHub</title>
+      </Helmet>
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col-reverse md:flex-row justify-between items-center gap-10 py-10">
@@ -176,44 +163,46 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {eventsData &&
-              eventsData.slice(0, 3).map((event: any, index: number) => (
-                <motion.div
-                  key={event?.eventTitle}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}>
-                  <Card className="hover:shadow-lg transition-shadow duration-300">
-                    <CardHeader>
-                      <CardTitle className="text-xl mb-3">
-                        {event.eventTitle}
-                      </CardTitle>
-                      <CardDescription className="text-sm text-gray-600 mb-3">
-                        by {event.name.toUpperCase()}
-                      </CardDescription>
-                      <CardDescription className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(event.dateAndTime)}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <MapPin className="h-4 w-4" />
-                          <span>{event.location}</span>
+            {featuresEventsData &&
+              featuresEventsData
+                .slice(0, 3)
+                .map((event: any, index: number) => (
+                  <motion.div
+                    key={event?.eventTitle}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}>
+                    <Card className="hover:shadow-lg transition-shadow duration-300">
+                      <CardHeader>
+                        <CardTitle className="text-xl mb-3">
+                          {event.eventTitle}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-gray-600 mb-3">
+                          by {event.name.toUpperCase()}
+                        </CardDescription>
+                        <CardDescription className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {formatDate(event.dateAndTime)}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <MapPin className="h-4 w-4" />
+                            <span>{event.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Users className="h-4 w-4" />
+                            <span>{event.attendees || 0} attendees</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Users className="h-4 w-4" />
-                          <span>{event.attendees || 0} attendees</span>
-                        </div>
-                      </div>
-                      <Button className="w-full mt-4">
-                        <Link to={"/events"}>Join Event</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                        <Button className="w-full mt-4">
+                          <Link to={"/events"}>Join Event</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
           </div>
         </div>
         <motion.div

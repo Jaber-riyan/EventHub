@@ -27,6 +27,7 @@ import UseEvents from "@/hooks/useEvents/UseEvents";
 import Loading from "../loading/loading";
 import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import Swal from "sweetalert2";
+import { Helmet } from "react-helmet-async";
 
 interface Event {
   _id: string;
@@ -214,6 +215,9 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>Events | EventHub</title>
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

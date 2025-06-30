@@ -25,6 +25,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import Swal from "sweetalert2";
+import { Helmet } from "react-helmet-async";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -95,6 +96,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <Helmet>
+        <title>Signup | EventHub</title>
+      </Helmet>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

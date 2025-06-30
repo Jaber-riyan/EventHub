@@ -11,12 +11,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = [
     { href: "/", label: "Home" },
@@ -45,7 +46,7 @@ export function Navbar() {
                       variant="outline"
                       size="sm"
                       className="text-xs bg-transparent">
-                      📝 Register Now
+                      📝 Signup Now
                     </Button>
                   </Link>
                   <Link to="/login">
@@ -53,7 +54,7 @@ export function Navbar() {
                       variant="outline"
                       size="sm"
                       className="text-xs bg-transparent">
-                      👤 Login
+                      👤 Signin
                     </Button>
                   </Link>
                 </>
@@ -121,7 +122,10 @@ export function Navbar() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
+                    <DropdownMenuItem onClick={() => {
+                      logout()
+                      navigate("/login")
+                    }}>
                       Log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>

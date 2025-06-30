@@ -19,6 +19,7 @@ import useAuth from "@/hooks/useAuth";
 import Swal from "sweetalert2";
 import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
 import Loading from "@/components/events/loading";
+import { Helmet } from "react-helmet-async";
 
 export default function AddEventPage() {
   const { user, isLoading } = useAuth();
@@ -82,7 +83,6 @@ export default function AddEventPage() {
           description: "",
           attendeeCount: 0,
         });
-        
 
         navigate(location?.state || "/add-event");
       }
@@ -110,6 +110,9 @@ export default function AddEventPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Helmet>
+          <title>Add Event | EventHub</title>
+        </Helmet>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

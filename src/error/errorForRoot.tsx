@@ -1,16 +1,16 @@
 import Footer from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import useAuth from "@/hooks/useAuth";
-import { HeadProvider, Title } from "react-head";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 const ErrorForRoot = () => {
   const { user } = useAuth();
   return (
     <div>
-      <HeadProvider>
-        <Title>404 | EventHub</Title>
-      </HeadProvider>
+      <Helmet>
+        <title>404 | EventHub</title>
+      </Helmet>
       <header className="sticky top-0 z-10 border-2 backdrop-blur-sm bg-black/40">
         <Navbar></Navbar>
       </header>
