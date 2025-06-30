@@ -58,7 +58,8 @@ export default function LoginPage() {
 
         navigate(location?.state || "/");
       }
-    } catch (error: any) {
+    } 
+    catch (error: any) {
       const errorMsg =
         error?.response?.data?.message || "Something went wrong, try again";
       Swal.fire({
@@ -66,7 +67,8 @@ export default function LoginPage() {
         text: errorMsg,
         icon: "error",
       });
-    } finally {
+    } 
+    finally {
       setIsLoading(false);
     }
   };
@@ -173,12 +175,12 @@ export default function LoginPage() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <h3 className="text-sm font-medium text-blue-900 mb-2">
-            Demo Credentials
+            Credentials
           </h3>
           <p className="text-xs text-blue-700">
-            Email: demo@example.com
+            Email: jaber@gmail.com
             <br />
-            Password: demo123
+            Password: jaber123
           </p>
         </motion.div>
       </motion.div>

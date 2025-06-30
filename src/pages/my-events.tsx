@@ -1,10 +1,26 @@
-import { useState, useEffect } from "react"
-import { Navbar } from "@/components/navbar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client";
+
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Calendar, Edit, MapPin, Plus, Trash2, Users } from "lucide-react";
+
+import useAuth from "@/hooks/useAuth";
+import UseAxiosNormal from "@/hooks/useAxios/UseAxiosNormal";
+import { useToast } from "@/hooks/use-toast";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +28,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,174 +39,182 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Users, Edit, Trash2, Plus } from "lucide-react"
-import { motion } from "framer-motion"
-import { useToast } from "@/hooks/use-toast"
-import { Link, useNavigate } from "react-router-dom"
-import useAuth from "@/hooks/useAuth"
+} from "@/components/ui/alert-dialog";
+import UseMyEvents from "@/hooks/useMyEvents/UserMyEvents";
+import Swal from "sweetalert2";
+import Loading from "@/components/loading/loading";
 
 interface Event {
-  id: string
-  title: string
-  name: string
-  date: string
-  time: string
-  location: string
-  description: string
-  attendeeCount: number
+  id: string;
+  title: string;
+  name: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  attendeeCount: number;
 }
 
 export default function MyEventsPage() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const [events, setEvents] = useState<Event[]>([])
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { user, isLoading: userLoading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const axiosInstanceNormal = UseAxiosNormal();
 
-  // Redirect if not authenticated
+  const [events, setEvents] = useState<Event[]>([]);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { myEventsData, myEventsLoading, myEventsRefetch } = UseMyEvents();
+
   useEffect(() => {
     if (!user) {
-      navigate("/login")
-      return
+      navigate("/login");
+      return;
     }
-  }, [user, navigate])
+    console.log(myEventsData);
 
-  // Mock user's events data
-  useEffect(() => {
-    const mockUserEvents: Event[] = [
-      {
-        id: "1",
-        title: "My Tech Meetup",
-        name: user?.name || "John Doe",
-        date: "2024-12-18",
-        time: "19:00",
-        location: "Downtown Conference Center",
-        description: "A networking event for tech professionals to share ideas and connect.",
-        attendeeCount: 45,
-      },
-      {
-        id: "2",
-        title: "Photography Workshop",
-        name: user?.name || "John Doe",
-        date: "2024-12-22",
-        time: "14:00",
-        location: "City Park",
-        description: "Learn advanced photography techniques in a hands-on outdoor workshop.",
-        attendeeCount: 25,
-      },
-      {
-        id: "3",
-        title: "Book Club Meeting",
-        name: user?.name || "John Doe",
-        date: "2024-12-28",
-        time: "18:30",
-        location: "Local Library",
-        description: "Monthly discussion of our current book selection with fellow book lovers.",
-        attendeeCount: 12,
-      },
-    ]
-    setEvents(mockUserEvents)
-  }, [user])
+    if (!user || userLoading || myEventsLoading) return;
+    // Fetch user's events using axios
+    if (myEventsData) {
+      const transformed = myEventsData.map((event: any) => {
+        const dateObj = new Date(event.dateAndTime);
+        return {
+          id: event._id,
+          title: event.eventTitle,
+          name: event.name,
+          location: event.location,
+          description: event.description,
+          attendeeCount: event.attendeeCount || 0,
+          date: dateObj.toISOString().split("T")[0],
+          time: dateObj.toTimeString().slice(0, 5),
+        };
+      });
+
+      setEvents(transformed);
+    }
+  }, [user, userLoading, myEventsData, myEventsLoading]);
 
   const handleUpdateEvent = (event: Event) => {
-    setEditingEvent(event)
-    setIsUpdateDialogOpen(true)
-  }
+    setEditingEvent(event);
+    setIsUpdateDialogOpen(true);
+  };
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingEvent) return
+    e.preventDefault();
+    if (!editingEvent) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const updatePayload = {
+        eventTitle: editingEvent.title,
+        dateAndTime: `${editingEvent.date}T${editingEvent.time}`,
+        location: editingEvent.location,
+        description: editingEvent.description,
+        attendeeCount: editingEvent.attendeeCount,
+      };
 
-      setEvents((prevEvents) => prevEvents.map((event) => (event.id === editingEvent.id ? editingEvent : event)))
+      const { data } = await axiosInstanceNormal.patch(
+        `/events/${editingEvent.id}`,
+        updatePayload
+      );
 
-      toast({
-        title: "Event Updated Successfully!",
-        description: "Your event has been updated.",
-      })
+      if (data.success) {
+        Swal.fire({
+          title: data.message,
+          icon: "success",
+        });
+        myEventsRefetch()
+      }
 
-      setIsUpdateDialogOpen(false)
-      setEditingEvent(null)
+      setIsUpdateDialogOpen(false);
+      setEditingEvent(null);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update event. Please try again.",
+        title: "Update Failed",
+        description: "Something went wrong while updating.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleDeleteEvent = async (eventId: string) => {
+  const handleDeleteEvent = async (id: string) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const { data: userInsertInfo } = await axiosInstanceNormal.delete(
+        `/events/${id}`
+      );
 
-      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId))
+      if (userInsertInfo.success) {
+        Swal.fire({
+          title: userInsertInfo.message,
+          icon: "success",
+        });
 
-      toast({
-        title: "Event Deleted",
-        description: "Your event has been successfully deleted.",
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete event. Please try again.",
-        variant: "destructive",
-      })
+        // Optimistically update UI
+        setEvents((prev) => prev.filter((event) => event.id !== id));
+
+        // Optionally: refetch if needed to stay in sync
+        myEventsRefetch();
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.message || "Something went wrong, try again";
+      Swal.fire({
+        title: "Event Delete Failed",
+        text: errorMsg,
+        icon: "error",
+      });
     }
-  }
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (!editingEvent) return
-
-    const { name, value } = e.target
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setEditingEvent((prev) =>
       prev
         ? {
             ...prev,
-            [name]: name === "attendeeCount" ? Number.parseInt(value) || 0 : value,
+            [name]: name === "attendeeCount" ? parseInt(value) || 0 : value,
           }
-        : null,
-    )
-  }
+        : null
+    );
+  };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
 
+  if (myEventsLoading || userLoading) {
+    return <Loading></Loading>;
+  }
   if (!user) {
-    return null // Will redirect in useEffect
+    return null; // Will redirect in useEffect
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}>
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Events</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                My Events
+              </h1>
               <p className="text-gray-600">Manage your created events</p>
             </div>
             <Link to="/add-event">
               <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create New Event
+                <Plus className="h-4 w-4" /> Create New Event
               </Button>
             </Link>
           </div>
@@ -198,8 +222,12 @@ export default function MyEventsPage() {
           {events.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
-              <p className="text-gray-500 mb-6">You haven't created any events. Start by creating your first event!</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No events yet
+              </h3>
+              <p className="text-gray-500 mb-6">
+                You haven't created any events.
+              </p>
               <Link to="/add-event">
                 <Button>Create Your First Event</Button>
               </Link>
@@ -211,65 +239,70 @@ export default function MyEventsPage() {
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                >
+                  transition={{ delay: index * 0.1 }}>
                   <Card className="h-full hover:shadow-lg transition-shadow duration-300">
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        <CardTitle className="text-xl line-clamp-2">{event.title}</CardTitle>
+                        <CardTitle className="text-xl line-clamp-2">
+                          {event.title}
+                        </CardTitle>
                         <Badge variant="outline">My Event</Badge>
                       </div>
-                      <CardDescription className="text-sm text-gray-600">by {event.name}</CardDescription>
+                      <CardDescription className="text-sm text-gray-600">
+                        by {event.name}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           <span>
                             {formatDate(event.date)} at {event.time}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
                           <span>{event.location}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           <span>{event.attendeeCount} attendees</span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 line-clamp-3">{event.description}</p>
+                      <p className="text-sm text-gray-700 line-clamp-3">
+                        {event.description}
+                      </p>
                       <div className="flex gap-2 pt-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => handleUpdateEvent(event)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Update
+                          className="flex-1 cursor-pointer"
+                          onClick={() => handleUpdateEvent(event)}>
+                          <Edit className="h-4 w-4 mr-1" /> Update
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" className="flex-1">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="flex-1 cursor-pointer">
+                              <Trash2 className="h-4 w-4 mr-1" /> Delete
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your event "{event.title}"
-                                and remove all associated data.
+                                This will permanently delete "{event.title}"
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="px-4 py-2 bg-black/90 rounded-xl text-white font-semibold cursor-pointer">
+                                Cancel
+                              </AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteEvent(event.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
+                                className="px-4 py-2 bg-red-500 text-white rounded-xl cursor-pointer"
+                                onClick={() => handleDeleteEvent(event.id)}>
                                 Delete Event
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -283,95 +316,71 @@ export default function MyEventsPage() {
             </div>
           )}
 
-          {/* Update Event Dialog */}
-          <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+          {/* Update Dialog */}
+          <Dialog
+            open={isUpdateDialogOpen}
+            onOpenChange={setIsUpdateDialogOpen}>
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Update Event</DialogTitle>
-                <DialogDescription>Make changes to your event details below.</DialogDescription>
+                <DialogDescription>Edit your event details.</DialogDescription>
               </DialogHeader>
               {editingEvent && (
                 <form onSubmit={handleUpdateSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-title">Event Title</Label>
-                      <Input
-                        id="edit-title"
-                        name="title"
-                        value={editingEvent.title}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-name">Organizer Name</Label>
-                      <Input
-                        id="edit-name"
-                        name="name"
-                        value={editingEvent.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
+                  <div className="">
+                    <InputField
+                      id="edit-title"
+                      name="title"
+                      label="Event Title"
+                      value={editingEvent.title}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-date">Date</Label>
-                      <Input
-                        id="edit-date"
-                        name="date"
-                        type="date"
-                        value={editingEvent.date}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-time">Time</Label>
-                      <Input
-                        id="edit-time"
-                        name="time"
-                        type="time"
-                        value={editingEvent.time}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-location">Location</Label>
-                    <Input
-                      id="edit-location"
-                      name="location"
-                      value={editingEvent.location}
+                    <InputField
+                      id="edit-date"
+                      name="date"
+                      type="date"
+                      label="Date"
+                      value={editingEvent.date}
                       onChange={handleInputChange}
-                      required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-description">Description</Label>
-                    <Textarea
-                      id="edit-description"
-                      name="description"
-                      value={editingEvent.description}
-                      onChange={handleInputChange}
-                      rows={3}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-attendeeCount">Attendee Count</Label>
-                    <Input
-                      id="edit-attendeeCount"
-                      name="attendeeCount"
-                      type="number"
-                      min="0"
-                      value={editingEvent.attendeeCount}
+                    <InputField
+                      id="edit-time"
+                      name="time"
+                      type="time"
+                      label="Time"
+                      value={editingEvent.time}
                       onChange={handleInputChange}
                     />
                   </div>
+                  <InputField
+                    id="edit-location"
+                    name="location"
+                    label="Location"
+                    value={editingEvent.location}
+                    onChange={handleInputChange}
+                  />
+                  <TextareaField
+                    id="edit-description"
+                    name="description"
+                    label="Description"
+                    value={editingEvent.description}
+                    onChange={handleInputChange}
+                  />
+                  <InputField
+                    id="edit-attendeeCount"
+                    name="attendeeCount"
+                    type="number"
+                    label="Attendee Count"
+                    value={editingEvent.attendeeCount.toString()}
+                    onChange={handleInputChange}
+                  />
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => setIsUpdateDialogOpen(false)}>
                       Cancel
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
@@ -385,5 +394,37 @@ export default function MyEventsPage() {
         </motion.div>
       </div>
     </div>
-  )
+  );
+}
+
+function InputField({ id, name, label, value, onChange, type = "text" }: any) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        name={name}
+        value={value}
+        onChange={onChange}
+        type={type}
+        required
+      />
+    </div>
+  );
+}
+
+function TextareaField({ id, name, label, value, onChange }: any) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Textarea
+        id={id}
+        name={name}
+        value={value}
+        onChange={onChange}
+        rows={3}
+        required
+      />
+    </div>
+  );
 }

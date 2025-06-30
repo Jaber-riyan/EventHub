@@ -200,9 +200,9 @@ export default function EventsPage() {
     );
   }
 
-  // if (!user) {
-  //   return null; // Will redirect in useEffect
-  // }
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
